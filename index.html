@@ -1,122 +1,670 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
-    <title>Мои заметки</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📚 Мои заметки</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background: var(--tg-theme-bg-color, #fff);
-            color: var(--tg-theme-text-color, #000);
+            background: var(--tg-theme-bg-color, #f8f9fa);
+            color: var(--tg-theme-text-color, #212529);
+            min-height: 100vh;
+            padding: 0 0 80px 0;
         }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 20px;
+            border-radius: 0 0 30px 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
         }
-        h1 {
-            color: var(--tg-theme-text-color, #000);
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
-        .category {
-            background: var(--tg-theme-secondary-bg-color, #f0f0f0);
+
+        .header p {
+            opacity: 0.9;
+            font-size: 16px;
+        }
+
+        .stats-cards {
+            display: flex;
+            gap: 15px;
+            padding: 0 20px;
+            margin-top: -25px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: var(--tg-theme-secondary-bg-color, white);
+            border-radius: 20px;
             padding: 15px;
-            margin: 10px 0;
-            border-radius: 10px;
+            flex: 1;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .stat-card.done {
+            background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+            color: white;
+        }
+
+        .stat-card.remaining {
+            background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+            color: white;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .categories {
+            padding: 0 20px;
+        }
+
+        .category {
+            background: var(--tg-theme-secondary-bg-color, white);
+            border-radius: 20px;
+            margin-bottom: 15px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .category:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .category-header {
+            padding: 18px 20px;
+            background: var(--tg-theme-secondary-bg-color, white);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .category-header.expanded {
+            border-bottom-color: #667eea;
+            background: linear-gradient(to right, rgba(102,126,234,0.05), transparent);
+        }
+
+        .category-name {
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .category-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+        }
+
+        .category-progress {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .progress-badge {
+            background: var(--tg-theme-bg-color, #f0f0f0);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--tg-theme-text-color, #666);
+        }
+
+        .arrow {
+            font-size: 20px;
+            color: #667eea;
+            transition: transform 0.3s;
+        }
+
+        .arrow.expanded {
+            transform: rotate(180deg);
+        }
+
+        .tasks {
+            padding: 15px;
+            background: var(--tg-theme-bg-color, #f8f9fa);
+        }
+
+        .task {
+            background: var(--tg-theme-secondary-bg-color, white);
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .task:hover {
+            border-color: #667eea;
+            transform: translateX(5px);
+        }
+
+        .task.done {
+            opacity: 0.8;
+            background: linear-gradient(to right, rgba(76,175,80,0.1), transparent);
+        }
+
+        .task.done .task-name {
+            text-decoration: line-through;
+            color: var(--tg-theme-hint-color, #999);
+        }
+
+        .task-checkbox {
+            width: 24px;
+            height: 24px;
+            border-radius: 8px;
+            border: 2px solid #667eea;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 16px;
+            transition: all 0.2s;
+        }
+
+        .task.done .task-checkbox {
+            background: #4caf50;
+            border-color: #4caf50;
+        }
+
+        .task-name {
+            flex: 1;
+            font-size: 16px;
+        }
+
+        .add-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            padding: 16px 25px;
+            font-size: 16px;
+            font-weight: 600;
+            width: calc(100% - 40px);
+            margin: 10px 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 4px 15px rgba(102,126,234,0.4);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .add-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102,126,234,0.5);
+        }
+
+        .add-button.small {
+            width: auto;
+            margin: 10px;
+            padding: 12px 20px;
+            font-size: 14px;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+        }
+
+        .modal.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: var(--tg-theme-secondary-bg-color, white);
+            border-radius: 30px;
+            padding: 30px;
+            width: 90%;
+            max-width: 400px;
+            transform: translateY(20px);
+            transition: transform 0.3s;
+        }
+
+        .modal.show .modal-content {
+            transform: translateY(0);
+        }
+
+        .modal h3 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #667eea;
+        }
+
+        .modal input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            font-size: 16px;
+            margin-bottom: 20px;
+            transition: border-color 0.2s;
+        }
+
+        .modal input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .modal-button {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 15px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .modal-button.primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .modal-button.secondary {
+            background: #e0e0e0;
+            color: #666;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: var(--tg-theme-hint-color, #999);
+        }
+
+        .empty-state-emoji {
+            font-size: 80px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .empty-state-text {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .empty-state-hint {
+            font-size: 14px;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .category {
+            animation: slideIn 0.3s ease-out;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>📚 Мои заметки</h1>
-        <div id="categories"></div>
-        <button onclick="addCategory()" style="
-            background: var(--tg-theme-button-color, #2481cc);
-            color: var(--tg-theme-button-text-color, #fff);
-            border: none;
-            padding: 15px 20px;
-            border-radius: 10px;
-            width: 100%;
-            font-size: 16px;
-            margin-top: 20px;
-        ">➕ Добавить предмет</button>
+    <div class="header">
+        <h1>
+            <span>📚 Мои заметки</span>
+        </h1>
+        <p>Отслеживай свои лабораторные работы</p>
+    </div>
+
+    <div class="stats-cards" id="stats">
+        <div class="stat-card done">
+            <div class="stat-value" id="done-count">0</div>
+            <div class="stat-label">✅ Сделано</div>
+        </div>
+        <div class="stat-card remaining">
+            <div class="stat-value" id="remaining-count">0</div>
+            <div class="stat-label">⏳ Осталось</div>
+        </div>
+    </div>
+
+    <div class="categories" id="categories"></div>
+
+    <button class="add-button" onclick="showAddCategoryModal()">
+        <span>➕</span>
+        <span>Добавить предмет</span>
+    </button>
+
+    <!-- Модальное окно для добавления предмета -->
+    <div class="modal" id="categoryModal">
+        <div class="modal-content">
+            <h3>➕ Новый предмет</h3>
+            <input type="text" id="categoryName" placeholder="Введите название предмета..." autocomplete="off">
+            <div class="modal-buttons">
+                <button class="modal-button secondary" onclick="hideModal('categoryModal')">Отмена</button>
+                <button class="modal-button primary" onclick="addCategory()">Создать</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для добавления лабы -->
+    <div class="modal" id="taskModal">
+        <div class="modal-content">
+            <h3>➕ Новая лаба</h3>
+            <input type="text" id="taskName" placeholder="Введите название лабы..." autocomplete="off">
+            <div class="modal-buttons">
+                <button class="modal-button secondary" onclick="hideModal('taskModal')">Отмена</button>
+                <button class="modal-button primary" onclick="addTask()">Добавить</button>
+            </div>
+        </div>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.ready();
         tg.expand();
+        
+        // Настраиваем главную кнопку
+        tg.MainButton.setParams({
+            text: '📊 Статистика',
+            color: '#667eea'
+        });
+        tg.MainButton.show();
 
         let categories = [];
+        let currentCategoryId = null;
 
-        function render() {
-            const container = document.getElementById('categories');
-            container.innerHTML = '';
-            
-            categories.forEach(cat => {
-                const div = document.createElement('div');
-                div.className = 'category';
-                div.innerHTML = `
-                    <strong>${cat.name}</strong>
-                    <div style="margin-top: 10px;">
-                        ${cat.tasks.map(t => `
-                            <div style="padding: 5px 0;">
-                                <input type="checkbox" ${t.done ? 'checked' : ''} 
-                                       onchange="toggleTask(${cat.id}, ${t.id})">
-                                <span style="text-decoration: ${t.done ? 'line-through' : 'none'}">
-                                    ${t.name}
-                                </span>
-                            </div>
-                        `).join('')}
-                    </div>
-                    <button onclick="addTask(${cat.id})" style="margin-top: 10px;">+ Добавить лабу</button>
-                `;
-                container.appendChild(div);
-            });
-            
-            // Сохраняем в Telegram Cloud Storage
-            tg.CloudStorage.setItem('notes', JSON.stringify(categories));
-        }
-
-        window.onload = () => {
-            // Загружаем сохраненные данные
-            tg.CloudStorage.getItem('notes', (err, data) => {
-                if (data) categories = JSON.parse(data);
+        // Загрузка данных
+        function loadData() {
+            const saved = tg.CloudStorage.getItem('notes', (err, data) => {
+                if (data) {
+                    categories = JSON.parse(data);
+                } else {
+                    // Тестовые данные для примера
+                    categories = [
+                        {
+                            id: 1,
+                            name: 'ПИТОН',
+                            icon: '🐍',
+                            tasks: [
+                                {id: 101, name: '1 лаба', done: false},
+                                {id: 102, name: '2 лаба', done: false},
+                                {id: 103, name: '3 лаба', done: true}
+                            ]
+                        },
+                        {
+                            id: 2,
+                            name: 'ЭВМ',
+                            icon: '💻',
+                            tasks: [
+                                {id: 201, name: '1 лаба', done: true},
+                                {id: 202, name: '2 лаба', done: true},
+                                {id: 203, name: '3 лаба', done: false},
+                                {id: 204, name: '4 лаба', done: false}
+                            ]
+                        },
+                        {
+                            id: 3,
+                            name: 'ТЕОРИЯ ИНФОРМАЦИИ',
+                            icon: '📊',
+                            tasks: [
+                                {id: 301, name: '1 лаба', done: true},
+                                {id: 302, name: '2 лаба', done: true},
+                                {id: 303, name: '3 лаба', done: true},
+                                {id: 304, name: '4 лаба', done: true}
+                            ]
+                        }
+                    ];
+                }
                 render();
             });
-        };
+        }
 
+        // Сохранение данных
+        function saveData() {
+            tg.CloudStorage.setItem('notes', JSON.stringify(categories));
+            updateStats();
+        }
+
+        // Обновление статистики
+        function updateStats() {
+            let done = 0;
+            let total = 0;
+            
+            categories.forEach(cat => {
+                cat.tasks.forEach(task => {
+                    total++;
+                    if (task.done) done++;
+                });
+            });
+            
+            document.getElementById('done-count').textContent = done;
+            document.getElementById('remaining-count').textContent = total - done;
+            
+            // Обновляем кнопку в Telegram
+            tg.MainButton.setText(`✅ ${done}  ⏳ ${total - done}`);
+        }
+
+        // Получение иконки по умолчанию
+        function getCategoryIcon(name) {
+            const icons = {
+                'питон': '🐍',
+                'python': '🐍',
+                'эвм': '💻',
+                'computer': '💻',
+                'теория информации': '📊',
+                'информации': '📊',
+                'математика': '📐',
+                'math': '📐',
+                'физика': '⚛️',
+                'physics': '⚛️',
+                'английский': '🇬🇧',
+                'english': '🇬🇧',
+                'история': '📜',
+                'history': '📜'
+            };
+            
+            const lowerName = name.toLowerCase();
+            for (let key in icons) {
+                if (lowerName.includes(key)) {
+                    return icons[key];
+                }
+            }
+            return '📚';
+        }
+
+        // Рендер интерфейса
+        function render() {
+            const container = document.getElementById('categories');
+            
+            if (categories.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-emoji">📚</div>
+                        <div class="empty-state-text">Здесь пока пусто</div>
+                        <div class="empty-state-hint">Нажми кнопку ниже, чтобы добавить первый предмет</div>
+                    </div>
+                `;
+                updateStats();
+                return;
+            }
+            
+            container.innerHTML = categories.map(cat => `
+                <div class="category">
+                    <div class="category-header" onclick="toggleCategory(${cat.id})">
+                        <div class="category-name">
+                            <span class="category-icon">${cat.icon || getCategoryIcon(cat.name)}</span>
+                            <span>${cat.name}</span>
+                        </div>
+                        <div class="category-progress">
+                            <span class="progress-badge">${cat.tasks.filter(t => t.done).length}/${cat.tasks.length}</span>
+                            <span class="arrow ${cat.expanded ? 'expanded' : ''}">▼</span>
+                        </div>
+                    </div>
+                    ${cat.expanded ? `
+                        <div class="tasks">
+                            ${cat.tasks.map(task => `
+                                <div class="task ${task.done ? 'done' : ''}" onclick="toggleTask(${cat.id}, ${task.id})">
+                                    <div class="task-checkbox">${task.done ? '✓' : ''}</div>
+                                    <span class="task-name">${task.name}</span>
+                                </div>
+                            `).join('')}
+                            <button class="add-button small" onclick="event.stopPropagation(); showAddTaskModal(${cat.id})">
+                                <span>➕</span>
+                                <span>Добавить лабу</span>
+                            </button>
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+            
+            updateStats();
+        }
+
+        // Переключение категории
+        function toggleCategory(id) {
+            categories = categories.map(cat => {
+                if (cat.id === id) {
+                    return {...cat, expanded: !cat.expanded};
+                }
+                return {...cat, expanded: false};
+            });
+            render();
+            saveData();
+        }
+
+        // Показать модальное окно для добавления предмета
+        function showAddCategoryModal() {
+            document.getElementById('categoryName').value = '';
+            document.getElementById('categoryModal').classList.add('show');
+        }
+
+        // Показать модальное окно для добавления лабы
+        function showAddTaskModal(categoryId) {
+            currentCategoryId = categoryId;
+            document.getElementById('taskName').value = '';
+            document.getElementById('taskModal').classList.add('show');
+        }
+
+        // Скрыть модальное окно
+        function hideModal(modalId) {
+            document.getElementById(modalId).classList.remove('show');
+        }
+
+        // Добавление предмета
         function addCategory() {
-            const name = prompt('Название предмета:');
+            const name = document.getElementById('categoryName').value.trim();
             if (name) {
                 categories.push({
                     id: Date.now(),
                     name: name,
-                    tasks: []
+                    icon: getCategoryIcon(name),
+                    tasks: [],
+                    expanded: true
                 });
+                hideModal('categoryModal');
                 render();
+                saveData();
             }
         }
 
-        function addTask(categoryId) {
-            const name = prompt('Название лабы:');
-            if (name) {
-                const cat = categories.find(c => c.id === categoryId);
-                cat.tasks.push({
-                    id: Date.now(),
-                    name: name,
-                    done: false
-                });
-                render();
+        // Добавление задачи
+        function addTask() {
+            const name = document.getElementById('taskName').value.trim();
+            if (name && currentCategoryId) {
+                const cat = categories.find(c => c.id === currentCategoryId);
+                if (cat) {
+                    cat.tasks.push({
+                        id: Date.now(),
+                        name: name,
+                        done: false
+                    });
+                    hideModal('taskModal');
+                    render();
+                    saveData();
+                }
             }
         }
 
+        // Переключение задачи
         function toggleTask(categoryId, taskId) {
             const cat = categories.find(c => c.id === categoryId);
             const task = cat.tasks.find(t => t.id === taskId);
             task.done = !task.done;
             render();
+            saveData();
         }
+
+        // Инициализация
+        loadData();
+
+        // Обработка нажатия на главную кнопку
+        tg.MainButton.onClick(() => {
+            // Показываем статистику или что-то ещё
+            tg.showPopup({
+                title: '📊 Статистика',
+                message: `Всего задач: ${categories.reduce((acc, cat) => acc + cat.tasks.length, 0)}\nВыполнено: ${document.getElementById('done-count').textContent}\nОсталось: ${document.getElementById('remaining-count').textContent}`,
+                buttons: [{type: 'close'}]
+            });
+        });
     </script>
 </body>
 </html>
