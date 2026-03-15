@@ -216,6 +216,59 @@
             font-size: 16px;
         }
 
+        .quick-add {
+            padding: 15px;
+            background: var(--tg-theme-secondary-bg-color, white);
+            border-radius: 15px;
+            margin: 10px 0;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .quick-add input {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.2s;
+            background: var(--tg-theme-bg-color, white);
+            color: var(--tg-theme-text-color, #212529);
+        }
+
+        .quick-add input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
+        }
+
+        .quick-add input::placeholder {
+            color: var(--tg-theme-hint-color, #999);
+        }
+
+        .quick-add button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            padding: 15px 20px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .quick-add button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102,126,234,0.4);
+        }
+
+        .quick-add button:active {
+            transform: translateY(0);
+        }
+
         .add-button {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -240,96 +293,6 @@
             box-shadow: 0 6px 20px rgba(102,126,234,0.5);
         }
 
-        .add-button.small {
-            width: auto;
-            margin: 10px;
-            padding: 12px 20px;
-            font-size: 14px;
-        }
-
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.5);
-            backdrop-filter: blur(5px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s;
-        }
-
-        .modal.show {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .modal-content {
-            background: var(--tg-theme-secondary-bg-color, white);
-            border-radius: 30px;
-            padding: 30px;
-            width: 90%;
-            max-width: 400px;
-            transform: translateY(20px);
-            transition: transform 0.3s;
-        }
-
-        .modal.show .modal-content {
-            transform: translateY(0);
-        }
-
-        .modal h3 {
-            font-size: 24px;
-            margin-bottom: 20px;
-            color: #667eea;
-        }
-
-        .modal input {
-            width: 100%;
-            padding: 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 15px;
-            font-size: 16px;
-            margin-bottom: 20px;
-            transition: border-color 0.2s;
-        }
-
-        .modal input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .modal-buttons {
-            display: flex;
-            gap: 10px;
-        }
-
-        .modal-button {
-            flex: 1;
-            padding: 15px;
-            border: none;
-            border-radius: 15px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .modal-button.primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-
-        .modal-button.secondary {
-            background: #e0e0e0;
-            color: #666;
-        }
-
         .empty-state {
             text-align: center;
             padding: 50px 20px;
@@ -351,6 +314,21 @@
             font-size: 14px;
         }
 
+        .keyboard-hint {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(102,126,234,0.9);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 100;
+            pointer-events: none;
+        }
+
         @keyframes slideIn {
             from {
                 opacity: 0;
@@ -364,6 +342,21 @@
 
         .category {
             animation: slideIn 0.3s ease-out;
+        }
+
+        /* Стили для мобильных устройств */
+        @media (max-width: 480px) {
+            .quick-add {
+                flex-direction: column;
+            }
+            
+            .quick-add button {
+                width: 100%;
+            }
+            
+            .keyboard-hint {
+                display: none;
+            }
         }
     </style>
 </head>
@@ -388,33 +381,20 @@
 
     <div class="categories" id="categories"></div>
 
-    <button class="add-button" onclick="showAddCategoryModal()">
-        <span>➕</span>
-        <span>Добавить предмет</span>
-    </button>
-
-    <!-- Модальное окно для добавления предмета -->
-    <div class="modal" id="categoryModal">
-        <div class="modal-content">
-            <h3>➕ Новый предмет</h3>
-            <input type="text" id="categoryName" placeholder="Введите название предмета..." autocomplete="off">
-            <div class="modal-buttons">
-                <button class="modal-button secondary" onclick="hideModal('categoryModal')">Отмена</button>
-                <button class="modal-button primary" onclick="addCategory()">Создать</button>
-            </div>
-        </div>
+    <!-- Быстрое добавление предмета (всегда видно) -->
+    <div class="quick-add" id="quickAddCategory">
+        <input 
+            type="text" 
+            id="quickCategoryInput" 
+            placeholder="➕ Введите название предмета и нажмите Enter..." 
+            autocomplete="off"
+        >
+        <button onclick="addQuickCategory()">Добавить</button>
     </div>
 
-    <!-- Модальное окно для добавления лабы -->
-    <div class="modal" id="taskModal">
-        <div class="modal-content">
-            <h3>➕ Новая лаба</h3>
-            <input type="text" id="taskName" placeholder="Введите название лабы..." autocomplete="off">
-            <div class="modal-buttons">
-                <button class="modal-button secondary" onclick="hideModal('taskModal')">Отмена</button>
-                <button class="modal-button primary" onclick="addTask()">Добавить</button>
-            </div>
-        </div>
+    <!-- Подсказка о горячих клавишах -->
+    <div class="keyboard-hint">
+        ⏎ Enter - сохранить | Esc - отмена
     </div>
 
     <script>
@@ -430,7 +410,8 @@
         tg.MainButton.show();
 
         let categories = [];
-        let currentCategoryId = null;
+        let activeCategoryId = null;
+        let quickAddTaskInput = null;
 
         // Загрузка данных
         function loadData() {
@@ -540,7 +521,7 @@
                     <div class="empty-state">
                         <div class="empty-state-emoji">📚</div>
                         <div class="empty-state-text">Здесь пока пусто</div>
-                        <div class="empty-state-hint">Нажми кнопку ниже, чтобы добавить первый предмет</div>
+                        <div class="empty-state-hint">Начните вводить название предмета выше ✨</div>
                     </div>
                 `;
                 updateStats();
@@ -567,16 +548,92 @@
                                     <span class="task-name">${task.name}</span>
                                 </div>
                             `).join('')}
-                            <button class="add-button small" onclick="event.stopPropagation(); showAddTaskModal(${cat.id})">
-                                <span>➕</span>
-                                <span>Добавить лабу</span>
-                            </button>
+                            
+                            <!-- Быстрое добавление лабы внутри категории -->
+                            <div class="quick-add" style="margin-top: 10px;">
+                                <input 
+                                    type="text" 
+                                    id="quickTaskInput_${cat.id}" 
+                                    class="quick-task-input"
+                                    placeholder="➕ Введите название лабы и нажмите Enter..." 
+                                    autocomplete="off"
+                                    data-category-id="${cat.id}"
+                                >
+                                <button onclick="addQuickTask(${cat.id})">Добавить</button>
+                            </div>
                         </div>
                     ` : ''}
                 </div>
             `).join('');
             
+            // Добавляем обработчики для быстрого ввода лаб
+            document.querySelectorAll('.quick-task-input').forEach(input => {
+                input.addEventListener('keydown', handleTaskKeyPress);
+            });
+            
             updateStats();
+        }
+
+        // Обработчик нажатия клавиш для ввода лабы
+        function handleTaskKeyPress(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const categoryId = parseInt(e.target.dataset.categoryId);
+                addQuickTask(categoryId);
+            } else if (e.key === 'Escape') {
+                e.target.value = '';
+                e.target.blur();
+            }
+        }
+
+        // Быстрое добавление предмета
+        function addQuickCategory() {
+            const input = document.getElementById('quickCategoryInput');
+            const name = input.value.trim();
+            
+            if (name) {
+                categories.push({
+                    id: Date.now(),
+                    name: name,
+                    icon: getCategoryIcon(name),
+                    tasks: [],
+                    expanded: true
+                });
+                
+                input.value = ''; // Очищаем поле
+                render();
+                saveData();
+                
+                // Возвращаем фокус на поле ввода
+                setTimeout(() => input.focus(), 100);
+            }
+        }
+
+        // Быстрое добавление лабы
+        function addQuickTask(categoryId) {
+            const input = document.getElementById(`quickTaskInput_${categoryId}`);
+            const name = input.value.trim();
+            
+            if (name && categoryId) {
+                const cat = categories.find(c => c.id === categoryId);
+                if (cat) {
+                    cat.tasks.push({
+                        id: Date.now(),
+                        name: name,
+                        done: false
+                    });
+                    
+                    input.value = ''; // Очищаем поле
+                    render();
+                    saveData();
+                    
+                    // Возвращаем фокус на поле ввода
+                    setTimeout(() => {
+                        const newInput = document.getElementById(`quickTaskInput_${categoryId}`);
+                        if (newInput) newInput.focus();
+                    }, 100);
+                }
+            }
         }
 
         // Переключение категории
@@ -589,59 +646,12 @@
             });
             render();
             saveData();
-        }
-
-        // Показать модальное окно для добавления предмета
-        function showAddCategoryModal() {
-            document.getElementById('categoryName').value = '';
-            document.getElementById('categoryModal').classList.add('show');
-        }
-
-        // Показать модальное окно для добавления лабы
-        function showAddTaskModal(categoryId) {
-            currentCategoryId = categoryId;
-            document.getElementById('taskName').value = '';
-            document.getElementById('taskModal').classList.add('show');
-        }
-
-        // Скрыть модальное окно
-        function hideModal(modalId) {
-            document.getElementById(modalId).classList.remove('show');
-        }
-
-        // Добавление предмета
-        function addCategory() {
-            const name = document.getElementById('categoryName').value.trim();
-            if (name) {
-                categories.push({
-                    id: Date.now(),
-                    name: name,
-                    icon: getCategoryIcon(name),
-                    tasks: [],
-                    expanded: true
-                });
-                hideModal('categoryModal');
-                render();
-                saveData();
-            }
-        }
-
-        // Добавление задачи
-        function addTask() {
-            const name = document.getElementById('taskName').value.trim();
-            if (name && currentCategoryId) {
-                const cat = categories.find(c => c.id === currentCategoryId);
-                if (cat) {
-                    cat.tasks.push({
-                        id: Date.now(),
-                        name: name,
-                        done: false
-                    });
-                    hideModal('taskModal');
-                    render();
-                    saveData();
-                }
-            }
+            
+            // Если открыли категорию, фокусируемся на поле ввода лабы
+            setTimeout(() => {
+                const taskInput = document.getElementById(`quickTaskInput_${id}`);
+                if (taskInput) taskInput.focus();
+            }, 100);
         }
 
         // Переключение задачи
@@ -658,12 +668,37 @@
 
         // Обработка нажатия на главную кнопку
         tg.MainButton.onClick(() => {
-            // Показываем статистику или что-то ещё
+            // Показываем статистику
             tg.showPopup({
                 title: '📊 Статистика',
                 message: `Всего задач: ${categories.reduce((acc, cat) => acc + cat.tasks.length, 0)}\nВыполнено: ${document.getElementById('done-count').textContent}\nОсталось: ${document.getElementById('remaining-count').textContent}`,
                 buttons: [{type: 'close'}]
             });
+        });
+
+        // Глобальный обработчик клавиш
+        document.addEventListener('keydown', (e) => {
+            // Ctrl/Cmd + N для нового предмета
+            if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+                e.preventDefault();
+                document.getElementById('quickCategoryInput').focus();
+            }
+            
+            // Escape для очистки активного поля
+            if (e.key === 'Escape') {
+                const activeElement = document.activeElement;
+                if (activeElement.tagName === 'INPUT') {
+                    activeElement.value = '';
+                    activeElement.blur();
+                }
+            }
+        });
+
+        // Автофокус на поле ввода предмета при загрузке
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                document.getElementById('quickCategoryInput').focus();
+            }, 500);
         });
     </script>
 </body>
